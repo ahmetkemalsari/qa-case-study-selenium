@@ -1,0 +1,2 @@
+# Bu dosya HarvestOnetrustCookiesTest tarafindan otomatik uretilir (onetrust.harvested.properties).
+# Manuel kopyalama gerekmez: mvn test -Dharvest.onetrust=true -Dtest=HarvestOnetrustCookiesTest

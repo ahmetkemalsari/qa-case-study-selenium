@@ -6,12 +6,15 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class BaseTest {
 
@@ -49,13 +52,46 @@ public abstract class BaseTest {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--start-maximized");
 
+        if (Boolean.parseBoolean(ConfigReader.getProperty("chrome.disable.blink.automation.controlled", "true"))) {
+            options.addArguments("--disable-blink-features=AutomationControlled");
+        }
+
+        if (Boolean.parseBoolean(ConfigReader.getProperty("chrome.exclude.enable.automation.switch", "true"))) {
+            options.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
+            options.setExperimentalOption("useAutomationExtension", false);
+        }
+
+        String userDataDir = ConfigReader.getProperty("chrome.user.data.dir");
+        if (userDataDir != null && !userDataDir.isBlank()) {
+            String trimmed = userDataDir.trim();
+            options.addArguments("--user-data-dir=" + trimmed);
+            String profileDir = ConfigReader.getProperty("chrome.profile.directory");
+            if (profileDir != null && !profileDir.isBlank()) {
+                options.addArguments("--profile-directory=" + profileDir.trim());
+            }
+            logger.warn(
+                    "chrome.user.data.dir aktif: Bu profille normal Chrome acik olmamali; aksi halde oturum cakismasi olur.");
+        }
+
+        String userAgent = ConfigReader.getProperty("chrome.user.agent", "");
+        if (userAgent != null && !userAgent.isBlank()) {
+            options.addArguments("--user-agent=" + userAgent.trim());
+        }
+
         if (headless) {
             options.addArguments("--headless=new");
         }
 
-        WebDriver webDriver = new ChromeDriver(options);
-        webDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(implicitWait));
-        return webDriver;
+        ChromeDriver chromeDriver = new ChromeDriver(options);
+
+        if (Boolean.parseBoolean(ConfigReader.getProperty("chrome.override.navigator.webdriver", "true"))) {
+            Map<String, Object> params = new HashMap<>();
+            params.put("source", "Object.defineProperty(navigator, 'webdriver', { get: () => undefined });");
+            chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", params);
+        }
+
+        chromeDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(implicitWait));
+        return chromeDriver;
     }
 
     private WebDriverWait createWait(WebDriver driver) {

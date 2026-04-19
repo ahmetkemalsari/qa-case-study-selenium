@@ -1,0 +1,16 @@
+# Copy this file to `src/test/resources/test.local.properties` (gitignored) and fill values.
+#
+# Prefer environment variables in CI:
+# - ZARA_TEST_EMAIL
+# - ZARA_TEST_PASSWORD (later, when needed)
+#
+# Optional (local only): JVM system property
+# mvn test -Dlogin.email=your.email@example.com
+#
+# OneTrust: elle kopyalamak istemezseniz once toplayiciyi calistirin (cikti: onetrust.harvested.properties, gitignore):
+# mvn test -Dharvest.onetrust=true -Dtest=HarvestOnetrustCookiesTest
+# Alternatif: asagidaki anahtarlar veya ortam ZARA_ONETRUST_OPTANONCONSENT
+# onetrust.optanonconsent=...
+# onetrust.optanonalertboxclosed=...
+
+login.email=your.email@example.com

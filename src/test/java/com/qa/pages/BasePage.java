@@ -17,13 +17,40 @@ public abstract class BasePage {
         this.wait = wait;
     }
 
+    /**
+     * Locator ile eşleşen element DOM'da oluşana kadar bekler, sonra tıklar (scroll + normal click, gerekirse JS).
+     * Bazı sitelerde {@link ExpectedConditions#visibilityOfElementLocated(By)} veya
+     * {@link ExpectedConditions#elementToBeClickable(By)} gereksiz sıkı kalır (header/link SPA yüzünden);
+     * bu yüzden varsayılan olarak önce {@code presence} kullanılır.
+     * {@link Thread#sleep} kullanılmaz.
+     */
     protected void click(By locator) {
-        WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
-        scrollIntoView(element);
-        try {
-            element.click();
-        } catch (RuntimeException ex) {
-            jsClick(element);
+        WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+        clickElement(element);
+    }
+
+    protected void clickElement(WebElement element) {
+        RuntimeException lastFailure = null;
+
+        for (int attempt = 0; attempt < 2; attempt++) {
+            scrollIntoView(element);
+
+            try {
+                element.click();
+                return;
+            } catch (RuntimeException ex) {
+                lastFailure = ex;
+                try {
+                    jsClick(element);
+                    return;
+                } catch (RuntimeException jsEx) {
+                    lastFailure = jsEx;
+                }
+            }
+        }
+
+        if (lastFailure != null) {
+            throw lastFailure;
         }
     }
 
@@ -41,4 +68,3 @@ public abstract class BasePage {
         element.click();
     }
 }
-

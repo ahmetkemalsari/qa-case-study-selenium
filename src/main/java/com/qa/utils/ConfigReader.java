@@ -30,4 +30,13 @@ public final class ConfigReader {
     public static String getProperty(String key) {
         return PROPERTIES.getProperty(key);
     }
+
+    public static String getProperty(String key, String defaultValue) {
+        String value = PROPERTIES.getProperty(key);
+        if (value == null) {
+            return defaultValue;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? defaultValue : trimmed;
+    }
 }
