@@ -30,4 +30,8 @@ public final class ConfigReader {
     public static String getProperty(String key) {
         return PROPERTIES.getProperty(key);
     }
+
+    public static String getProperty(String key, String defaultValue) {
+        return PROPERTIES.getProperty(key, defaultValue);
+    }
 }
